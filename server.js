@@ -340,6 +340,6 @@ app.post('/update-pix', async (req, res) => {
     }
 });
 
-app.listen(port, 'localhost', () => {
-  console.log(`🚀 Backend rodando em http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Backend rodando em http://0.0.0.0:${port}`);
 });
