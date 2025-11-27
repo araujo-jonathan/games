@@ -11,7 +11,7 @@ dotenv.config();
 const { Pool } = pkg;
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 // Middleware - Enable CORS for all requests
 app.use(cors({
@@ -340,6 +340,6 @@ app.post('/update-pix', async (req, res) => {
     }
 });
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, 'localhost', () => {
   console.log(`🚀 Backend rodando em http://localhost:${port}`);
 });

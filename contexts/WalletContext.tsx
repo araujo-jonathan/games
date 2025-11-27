@@ -2,8 +2,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { Transaction } from '../types';
 
-// Use 127.0.0.1 to avoid "localhost" resolution issues on some systems (Mac/Node v18+)
-const API_URL = 'http://127.0.0.1:3000';
+// Use localhost for backend API
+const API_URL = 'http://localhost:3001';
 
 interface WalletContextProps {
   userId: number | null;
