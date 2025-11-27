@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 5000,
         host: '0.0.0.0',
+        allowedHosts: true,
         hmr: {
           clientPort: 443,
         },
@@ -15,6 +16,7 @@ export default defineConfig(({ mode }) => {
       preview: {
         port: 5000,
         host: '0.0.0.0',
+        allowedHosts: true,
       },
       plugins: [react()],
       define: {
