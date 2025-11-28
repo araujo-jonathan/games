@@ -45,10 +45,6 @@ externalPort = 80
 localPort = 36375
 externalPort = 3000
 
-[[ports]]
-localPort = 37493
-externalPort = 3003
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "node server.js & npm run preview"]

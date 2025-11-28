@@ -26,7 +26,7 @@ const getApiUrl = () => {
   return 'http://localhost:3001';
 };
 
-const API_URL = getApiUrl();
+const API_URL = '/api';
 
 interface WalletContextProps {
   userId: number | null;
