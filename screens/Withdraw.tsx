@@ -11,12 +11,36 @@ const Withdraw = () => {
   const { t } = useLanguage();
   const { balance, deductBalance, userPixKey } = useWallet();
   const navigate = useNavigate();
-  const [amount, setAmount] = useState('500,00');
+  const [amount, setAmount] = useState('');
+  const formatCurrency = (value: string) => {
+    // Remove tudo que não é número
+    let numbers = value.replace(/\D/g, '');
+    
+    // Converte para número e divide por 100 (centavos)
+    let numberValue = parseInt(numbers || '0') / 100;
+    
+    // Formata como moeda brasileira
+    return numberValue.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+  
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue.length <= 9) { // Limite de R$ 9.999.999,99
+      setAmount(formatCurrency(rawValue));
+    }
+  };
+  
+  const getNumericValue = () => {
+    return parseFloat(amount.replace(/\./g, '').replace(',', '.')) || 0;
+  };
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleMax = () => {
-    setAmount(balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setAmount(formatCurrency((balance * 100).toFixed(0)));
   };
 
   const handleInitialSubmit = () => {
@@ -26,7 +50,7 @@ const Withdraw = () => {
         return;
     }
 
-    const numAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
+    const numAmount = getNumericValue();
     if (numAmount > 0 && numAmount <= balance) {
       setShowModal(true);
     } else if (numAmount > balance) {
@@ -72,15 +96,14 @@ const Withdraw = () => {
         <div>
           <h3 className="text-white text-xl font-bold mb-3">{t('with.how_much')}</h3>
           <div className="flex items-center bg-surface rounded-xl overflow-hidden border border-white/5 focus-within:border-primary transition-colors">
-            <input 
-              type="text"
-              value={`R$ ${amount}`}
-              onChange={(e) => {
-                const val = e.target.value.replace('R$ ', '');
-                setAmount(val);
-              }}
-              className="w-full bg-transparent text-white text-2xl font-bold p-4 focus:outline-none placeholder:text-text-muted/50"
-            />
+          <input 
+  type="text"
+  inputMode="numeric"
+  value={amount ? `R$ ${amount}` : ''}
+  onChange={handleAmountChange}
+  placeholder="R$ 0,00"
+  className="w-full bg-transparent text-white text-2xl font-bold p-4 focus:outline-none placeholder:text-text-muted/50"
+/>
             <button 
               onClick={handleMax}
               className="mr-4 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-colors"
