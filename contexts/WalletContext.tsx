@@ -2,8 +2,31 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { Transaction } from '../types';
 
-// Use 127.0.0.1 to avoid "localhost" resolution issues on some systems (Mac/Node v18+)
-const API_URL = 'http://127.0.0.1:3000';
+// Construct API URL for Replit environment
+// In Replit, frontend runs on https://5000--slug.user.repl.co
+// Backend runs on https://3001--slug.user.repl.co
+const getApiUrl = () => {
+  if (typeof window === 'undefined') return 'http://localhost:3001';
+  
+  const hostname = window.location.hostname;
+  // Check if we're on a Replit domain
+  if (hostname.includes('.replit.dev') || hostname.includes('.repl.co')) {
+    // Check if hostname has a port prefix (e.g., 5000--)
+    if (/^\d+--/.test(hostname)) {
+      // Replace existing port prefix with 3001--
+      const newHostname = hostname.replace(/^\d+--/, '3001--');
+      return `${window.location.protocol}//${newHostname}`;
+    } else {
+      // No port prefix, add 3001--
+      return `${window.location.protocol}//3001--${hostname}`;
+    }
+  }
+  
+  // Local development
+  return 'http://localhost:3001';
+};
+
+const API_URL = '/api';
 
 interface WalletContextProps {
   userId: number | null;
