@@ -3,8 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import pkg from 'pg';
+import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 // Fix for ES Module import of pg
@@ -86,31 +86,35 @@ app.get('/', (req, res) => {
 
 // 1. Registro
 app.post('/register', async (req, res) => {
-    const { name, email, password, cpf } = req.body;
-    
-    if (!name || !email || !password || !cpf) {
-        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
-    }
+  const { name, email, password, cpf } = req.body;
+  
+  if (!name || !email || !password || !cpf) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+  }
 
-    try {
-        const cleanCpf = cpf.replace(/\D/g, ''); 
+  try {
+      const cleanCpf = cpf.replace(/\D/g, ''); 
 
-        const userExists = await pool.query('SELECT id FROM users WHERE email = $1 OR cpf_cnpj = $2', [email, cleanCpf]);
-        if (userExists.rows.length > 0) {
-            return res.status(400).json({ error: 'Usuário já cadastrado com este Email ou CPF.' });
-        }
+      const userExists = await pool.query('SELECT id FROM users WHERE email = $1 OR cpf_cnpj = $2', [email, cleanCpf]);
+      if (userExists.rows.length > 0) {
+          return res.status(400).json({ error: 'Usuário já cadastrado com este Email ou CPF.' });
+      }
 
-        const result = await pool.query(
-            'INSERT INTO users (name, email, password_hash, cpf_cnpj, balance, tipo) VALUES ($1, $2, $3, $4, 0.00, $5) RETURNING id, name, email, balance',
-            [name, email, password, cleanCpf, 'usuario']
-        );
+      // Criptografa a senha
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const newUser = result.rows[0];
-        res.json({ success: true, user: newUser });
-    } catch (err) {
-        console.error('Erro no registro:', err);
-        res.status(500).json({ error: 'Erro ao criar conta.' });
-    }
+      const result = await pool.query(
+          'INSERT INTO users (name, email, password_hash, cpf_cnpj, balance, tipo) VALUES ($1, $2, $3, $4, 0.00, $5) RETURNING id, name, email, balance',
+          [name, email, hashedPassword, cleanCpf, 'usuario']
+      );
+
+      const newUser = result.rows[0];
+      res.json({ success: true, user: newUser });
+  } catch (err) {
+      console.error('Erro no registro:', err);
+      res.status(500).json({ error: 'Erro ao criar conta.' });
+  }
 });
 
 // 2. Login
@@ -122,7 +126,10 @@ app.post('/login', async (req, res) => {
     if (result.rows.length > 0) {
       const user = result.rows[0];
       
-      if (user.password_hash !== password) {
+      // Compara a senha com o hash
+      const senhaValida = await bcrypt.compare(password, user.password_hash);
+      
+      if (!senhaValida) {
           return res.status(401).json({ error: 'Senha incorreta' });
       }
       

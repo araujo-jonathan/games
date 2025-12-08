@@ -12,6 +12,26 @@ const Transfer = () => {
   const navigate = useNavigate();
   const [cpf, setCpf] = useState('');
   const [amount, setAmount] = useState('');
+
+  const formatCurrency = (value: string) => {
+    let numbers = value.replace(/\D/g, '');
+    let numberValue = parseInt(numbers || '0') / 100;
+    return numberValue.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+  
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue.length <= 9) {
+      setAmount(formatCurrency(rawValue));
+    }
+  };
+  
+  const getNumericValue = () => {
+    return parseFloat(amount.replace(/\./g, '').replace(',', '.')) || 0;
+  };
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -48,19 +68,19 @@ const Transfer = () => {
   };
 
   const handleFinalConfirm = async () => {
-      setIsLoading(true);
-      const val = parseFloat(amount);
-      if (val > 0) {
-          const success = await processTransfer(val, cpf, recipientName);
-          if (success) {
-            setShowConfirmModal(false);
-            navigate('/dashboard');
-          } else {
-              alert(t('trans.insufficient'));
-          }
-      }
-      setIsLoading(false);
-  };
+    setIsLoading(true);
+    const val = getNumericValue();
+    if (val > 0) {
+        const success = await processTransfer(val, cpf, recipientName);
+        if (success) {
+          setShowConfirmModal(false);
+          navigate('/dashboard');
+        } else {
+            alert(t('trans.insufficient'));
+        }
+    }
+    setIsLoading(false);
+};
 
   const handleCopyLink = () => {
       navigator.clipboard.writeText("https://finfuture.app/register");
@@ -96,18 +116,19 @@ const Transfer = () => {
           </div>
 
           <div>
-             <label className="block text-text-muted text-sm font-medium mb-2">{t('trans.amount_label')}</label>
-             <div className="flex items-center bg-surface rounded-xl overflow-hidden border border-white/10 focus-within:border-primary transition-colors">
-                <input 
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-transparent text-white text-xl font-bold p-4 focus:outline-none placeholder:text-text-muted/50"
-                    placeholder="0.00"
-                />
-                <span className="pr-4 font-bold text-primary">GMC</span>
-             </div>
-          </div>
+   <label className="block text-text-muted text-sm font-medium mb-2">{t('trans.amount_label')}</label>
+   <div className="flex items-center bg-surface rounded-xl overflow-hidden border border-white/10 focus-within:border-primary transition-colors">
+      <input 
+          type="text"
+          inputMode="numeric"
+          value={amount}
+          onChange={handleAmountChange}
+          placeholder="0,00"
+          className="w-full bg-transparent text-white text-xl font-bold p-4 focus:outline-none placeholder:text-text-muted/50"
+      />
+      <span className="pr-4 font-bold text-primary">GMC</span>
+   </div>
+</div>
         </div>
 
         {/* Warning/Info */}
@@ -119,12 +140,12 @@ const Transfer = () => {
         </div>
 
         <div className="mt-auto pb-8">
-            <Button 
-                fullWidth 
-                onClick={handleInitialSubmit} 
-                disabled={!amount || !cpf || parseFloat(amount) > balance || isLoading} 
-                className={(!amount || !cpf || parseFloat(amount) > balance) ? "opacity-50 cursor-not-allowed" : ""}
-            >
+        <Button 
+    fullWidth 
+    onClick={handleInitialSubmit} 
+    disabled={!amount || !cpf || getNumericValue() > balance || getNumericValue() <= 0 || isLoading} 
+    className={(!amount || !cpf || getNumericValue() > balance || getNumericValue() <= 0) ? "opacity-50 cursor-not-allowed" : ""}
+>
                 {isLoading ? <Loader2 className="animate-spin" /> : t('trans.confirm')}
             </Button>
         </div>
@@ -158,8 +179,7 @@ const Transfer = () => {
                           </div>
                       </div>
                       <div className="flex justify-between items-center pt-1">
-                          <span className="text-text-muted text-sm">{t('trans.modal.amount')}</span>
-                          <span className="text-xl font-bold text-primary">{parseFloat(amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} GMC</span>
+                      <span className="text-xl font-bold text-primary">{amount} GMC</span>
                       </div>
                   </div>
 
